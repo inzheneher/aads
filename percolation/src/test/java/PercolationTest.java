@@ -1,12 +1,13 @@
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+
 public class PercolationTest {
 
     private Percolation percolation;
     private int arrayDimensionInRange;
     private int arrayDimensionOutRange;
-    private int arrayDimension;
     private int rowInRange;
     private int rowOutOfRange;
     private int colInRange;
@@ -14,12 +15,12 @@ public class PercolationTest {
 
     @Before
     public void init() {
-        arrayDimension = 10;
+        int arrayDimension = 10;
         arrayDimensionInRange = 1;
-        rowInRange = 1;
-        rowOutOfRange = arrayDimensionOutRange = 0;
-        colInRange = 10;
-        colOutOfRange = 11;
+        rowInRange = 0;
+        rowOutOfRange = arrayDimensionOutRange = -1;
+        colInRange = arrayDimension - 1;
+        colOutOfRange = arrayDimension * arrayDimension + 3;
         percolation = new Percolation(arrayDimension);
     }
 
@@ -91,5 +92,48 @@ public class PercolationTest {
     @Test(expected = IllegalArgumentException.class)
     public void whenSecondArgumentInIsFullIsOutOfRangeThrowIllegalArgumentException() {
         percolation.isFull(rowInRange, colOutOfRange);
+    }
+
+    @Test
+    public void whenRowAndColAreMappedCorrectlyToArrayIndexThenAssert() {
+        assertEquals(17, percolation.getArrayIndexFor(1, 6));
+        assertEquals(46, percolation.getArrayIndexFor(4, 5));
+        assertEquals(69, percolation.getArrayIndexFor(6, 8));
+        assertEquals(84, percolation.getArrayIndexFor(8, 3));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void whenRowAndColLessThanZeroThenThrowIllegalArgumentException() {
+        percolation.getArrayIndexFor(-1, -1);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void whenRowIsLessThanZeroThenThrowIllegalArgumentException() {
+        percolation.getArrayIndexFor(-1, 1);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void whenColIsLessThanZeroThenThrowIllegalArgumentException() {
+        percolation.getArrayIndexFor(1, -1);
+    }
+
+    @Test
+    public void whenRowAndColMoreThanZeroAndLessThanArraySizeThenAssert() {
+        percolation.getArrayIndexFor(1, 1);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void whenRowMoreThanArraySizeThenThrowIllegalArgumentException() {
+        percolation.getArrayIndexFor(percolation.getNByNGrid().length + 1,1);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void whenColMoreThanArraySizeThenThrowIllegalArgumentException() {
+        percolation.getArrayIndexFor(1, percolation.getNByNGrid().length + 1);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void whenRowAndColMoreThanZeroAndMoreThanArraySizeThrowIllegalArgumentException() {
+        percolation.getArrayIndexFor(percolation.getNByNGrid().length + 1, percolation.getNByNGrid().length + 1);
     }
 }
