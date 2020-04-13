@@ -1,24 +1,19 @@
 import edu.princeton.cs.algs4.StdRandom;
-import edu.princeton.cs.algs4.WeightedQuickUnionUF;
-
-import java.util.Arrays;
-import java.util.stream.Stream;
 
 public class Percolation {
 
     private final int[] nByNGrid;
-    private int[] sizeArr;
-    private boolean[][] opened;
+    private final int[] sizeArr;
+    private final boolean[][] opened;
     private int numberOfOpenSites;
-    private int size;
-    private int count;
+    private final int size;
     private final int top;
     private final int bottom;
 
-    // creates n-by-n grid, with all sites initially blocked
+    private int counter = 0;
+
     public Percolation(int n) {
         if (n <= 0) throw new IllegalArgumentException();
-        count = n * n;
         top = 0;
         bottom = n * n + 1;
         size = n;
@@ -35,47 +30,32 @@ public class Percolation {
         }
     }
 
-    // test client (optional)
     public static void main(String[] args) {
-        Percolation percolation = new Percolation(20);
-        percolation.printArray(percolation.nByNGrid);
-        System.out.println();
-
-        int n = percolation.nByNGrid.length;
+        Percolation pn = new Percolation(Integer.parseInt(args[0]));
         int row, col;
-        percolation.print2DArray(percolation.opened);
-        double start = System.nanoTime();
-
-        while (!percolation.percolates()) {
-            row = StdRandom.uniform(percolation.size);
-            col = StdRandom.uniform(percolation.size);
-            percolation.open(row, col);
+        while (!pn.percolates()) {
+            row = StdRandom.uniform(pn.size);
+            col = StdRandom.uniform(pn.size);
+            pn.open(row, col);
         }
-
-        percolation.print2DArray(percolation.opened);
-
-        System.out.println("Time for percolation is: ".concat(String.valueOf((System.nanoTime() - start) / 1000_000)).concat(" ms"));
-        System.out.println();
-        percolation.printArray(percolation.nByNGrid);
-        System.out.println();
-        System.out.println("Number of open sites is: ".concat(String.valueOf(percolation.numberOfOpenSites())));
+        System.out.println("Percolation threshold is: ".concat(String.valueOf((double) pn.numberOfOpenSites() / (pn.size * pn.size))));
+        System.out.println("Amount of attempts: ".concat(String.valueOf(pn.counter)));
     }
 
-    // opens the site (row, col) if it is not open already
     public void open(int row, int col) {
         validate(row, col);
         if (!isOpen(row, col)) {
             opened[row][col] = true;
             numberOfOpenSites++;
-            //left lookup
             if (col > 0 && isOpen(row, col - 1)) union(getArrayIndexFor(row, col - 1), getArrayIndexFor(row, col));
-            if (col < size - 1 && isOpen(row, col + 1)) union(getArrayIndexFor(row, col + 1), getArrayIndexFor(row, col));
-            if (row < size - 1 && isOpen(row + 1, col)) union(getArrayIndexFor(row + 1, col), getArrayIndexFor(row, col));
+            if (col < size - 1 && isOpen(row, col + 1))
+                union(getArrayIndexFor(row, col + 1), getArrayIndexFor(row, col));
+            if (row < size - 1 && isOpen(row + 1, col))
+                union(getArrayIndexFor(row + 1, col), getArrayIndexFor(row, col));
             if (row > 0 && isOpen(row - 1, col)) union(getArrayIndexFor(row - 1, col), getArrayIndexFor(row, col));
         }
     }
 
-    // is the site (row, col) open?
     public boolean isOpen(int row, int col) {
         validate(row, col);
         return opened[row][col];
@@ -91,7 +71,6 @@ public class Percolation {
         return isOpen(row, col) && nByNGrid[getArrayIndexFor(row, col)] == 0;
     }
 
-    // returns the number of open sites
     public int numberOfOpenSites() {
         return numberOfOpenSites;
     }
@@ -99,66 +78,34 @@ public class Percolation {
     /**
      * The system percolates if there is a full site in the bottom row.
      */
-    // does the system percolate?
     public boolean percolates() {
+        counter++;
         return nByNGrid[bottom] == nByNGrid[top];
     }
 
-    public int getArrayIndexFor(int row, int col) {
+    private int getArrayIndexFor(int row, int col) {
         if ((row < 0 || row >= size) || (col < 0 || col >= size)) throw new IllegalArgumentException();
         return row * size + col + 1;
     }
 
-    private int root(int[] id, int i) {
-        while (i != id[i]) i = id[i];
-        return i;
-    }
-
-    public boolean connected(int[] id, int p, int q) {
-        return root(id, p) == root(id, q);
-    }
-
-    public int find(int p) {
+    private int find(int p) {
         validate(p);
         while (p != nByNGrid[p]) p = nByNGrid[p];
         return p;
     }
 
-    public void union(int p, int q) {
+    private void union(int p, int q) {
         int rootP = find(p);
         int rootQ = find(q);
         if (rootP == rootQ) return;
 
-        // make smaller root point to larger one
         if (sizeArr[rootP] < sizeArr[rootQ]) {
             nByNGrid[rootP] = rootQ;
             sizeArr[rootQ] += sizeArr[rootP];
-        }
-        else {
+        } else {
             nByNGrid[rootQ] = rootP;
             sizeArr[rootP] += sizeArr[rootQ];
         }
-        count--;
-    }
-
-    private void printArray(int[] arr) {
-        Arrays.stream(arr).forEach(result -> System.out.print(result + " "));
-        System.out.println();
-    }
-
-    private void print2DArray(int[][] arr) {
-        for (int[] ints : arr) {
-            Arrays.stream(ints).forEach(result -> System.out.print(result + " "));
-            System.out.println();
-        }
-    }
-
-    private void print2DArray(boolean[][] arr) {
-        for (boolean[] booleans : arr) {
-            Stream.of(booleans).forEach(result -> System.out.print(Arrays.toString(result) + " "));
-            System.out.println();
-        }
-        System.out.println();
     }
 
     private void validate(int a) {
@@ -174,9 +121,5 @@ public class Percolation {
     private void validate(int row, int col) {
         validate(row);
         validate(col);
-    }
-
-    public int[] getNByNGrid() {
-        return nByNGrid;
     }
 }
