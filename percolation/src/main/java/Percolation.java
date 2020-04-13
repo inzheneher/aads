@@ -10,8 +10,6 @@ public class Percolation {
     private final int top;
     private final int bottom;
 
-    private int counter = 0;
-
     public Percolation(int n) {
         if (n <= 0) throw new IllegalArgumentException();
         top = 0;
@@ -38,8 +36,6 @@ public class Percolation {
             col = StdRandom.uniform(pn.size);
             pn.open(row, col);
         }
-        System.out.println("Percolation threshold is: ".concat(String.valueOf((double) pn.numberOfOpenSites() / (pn.size * pn.size))));
-        System.out.println("Amount of attempts: ".concat(String.valueOf(pn.counter)));
     }
 
     public void open(int row, int col) {
@@ -79,7 +75,6 @@ public class Percolation {
      * The system percolates if there is a full site in the bottom row.
      */
     public boolean percolates() {
-        counter++;
         return nByNGrid[bottom] == nByNGrid[top];
     }
 
