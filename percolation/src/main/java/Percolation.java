@@ -7,14 +7,16 @@ public class Percolation {
     private int numberOfOpenSites;
     private final int size;
     private final int top, bottom;
-    private final WeightedQuickUnionUF uf;
+    private final WeightedQuickUnionUF ufTop;
+    private final WeightedQuickUnionUF ufBottom;
 
     public Percolation(int n) {
         if (n <= 0) throw new IllegalArgumentException();
         size = n;
         top = 0;
         bottom = n * n + 1;
-        uf = new WeightedQuickUnionUF(size * size + 2);
+        ufTop = new WeightedQuickUnionUF(size * size + 2);
+        ufBottom = new WeightedQuickUnionUF(size * size + 1);
         opened = new boolean[n][n];
     }
 
@@ -34,12 +36,27 @@ public class Percolation {
         if (!isOpen(row, col)) {
             opened[row - 1][col - 1] = true;
             numberOfOpenSites++;
-            if (row == 1) uf.union(top, getArrayIndexFor(row, col));
-            if (row == size) uf.union(bottom, getArrayIndexFor(row, col));
-            if (col > 1 && isOpen(row, col - 1)) uf.union(getArrayIndexFor(row, col - 1), getArrayIndexFor(row, col));
-            if (col < size && isOpen(row, col + 1)) uf.union(getArrayIndexFor(row, col + 1), getArrayIndexFor(row, col));
-            if (row > 1 && isOpen(row - 1, col)) uf.union(getArrayIndexFor(row - 1, col), getArrayIndexFor(row, col));
-            if (row < size && isOpen(row + 1, col)) uf.union(getArrayIndexFor(row + 1, col), getArrayIndexFor(row, col));
+            if (row == 1) {
+                ufTop.union(getArrayIndexFor(row, col), top);
+                ufBottom.union(getArrayIndexFor(row, col), top);
+            }
+            if (row == size) ufTop.union(getArrayIndexFor(row, col), bottom);
+            if (col > 1 && isOpen(row, col - 1)) {
+                ufTop.union(getArrayIndexFor(row, col - 1), getArrayIndexFor(row, col));
+                ufBottom.union(getArrayIndexFor(row, col - 1), getArrayIndexFor(row, col));
+            }
+            if (col < size && isOpen(row, col + 1)) {
+                ufTop.union(getArrayIndexFor(row, col + 1), getArrayIndexFor(row, col));
+                ufBottom.union(getArrayIndexFor(row, col + 1), getArrayIndexFor(row, col));
+            }
+            if (row > 1 && isOpen(row - 1, col)) {
+                ufTop.union(getArrayIndexFor(row - 1, col), getArrayIndexFor(row, col));
+                ufBottom.union(getArrayIndexFor(row - 1, col), getArrayIndexFor(row, col));
+            }
+            if (row < size && isOpen(row + 1, col)) {
+                ufTop.union(getArrayIndexFor(row + 1, col), getArrayIndexFor(row, col));
+                ufBottom.union(getArrayIndexFor(row + 1, col), getArrayIndexFor(row, col));
+            }
         }
     }
 
@@ -56,7 +73,7 @@ public class Percolation {
     public boolean isFull(int row, int col) {
         validate(row);
         validate(col);
-        return uf.connected(top, getArrayIndexFor(row, col));
+        return connectedBottom(top, getArrayIndexFor(row, col));
     }
 
     public int numberOfOpenSites() {
@@ -67,7 +84,15 @@ public class Percolation {
      * The system percolates if there is a full site in the bottom row.
      */
     public boolean percolates() {
-        return uf.connected(top, bottom);
+        return connectedTop(top, bottom);
+    }
+
+    private boolean connectedTop(int p, int q) {
+        return ufTop.find(p) == ufTop.find(q);
+    }
+
+    private boolean connectedBottom(int p, int q) {
+        return ufBottom.find(p) == ufBottom.find(q);
     }
 
     private int getArrayIndexFor(int row, int col) {
@@ -76,7 +101,7 @@ public class Percolation {
     }
 
     private void validate(int a) {
-        if (a < 1 || a > size)
-            throw new IllegalArgumentException("Index ".concat(String.valueOf(a)).concat(" must be between 0 and ").concat(String.valueOf(size - 1)));
+        int n = 1;
+        if (a < n || a > size) throw new IllegalArgumentException(String.format("Index %s must be between %s and %s", a, n, size - 1));
     }
 }

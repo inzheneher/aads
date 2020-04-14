@@ -29,11 +29,7 @@ public class PercolationStats {
     }
 
     public static void main(String[] args) {
-        PercolationStats ps = new PercolationStats(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
-
-        StdOut.println("mean                    = ".concat(String.valueOf(ps.mean())));
-        StdOut.println("stddev                  = ".concat(String.valueOf(ps.stddev())));
-        StdOut.println("95% confidence interval = [".concat(String.valueOf(ps.confidenceLo())).concat(", ").concat(String.valueOf(ps.confidenceHi())).concat("]"));
+        new PercolationStats(Integer.parseInt(args[0]), Integer.parseInt(args[1])).printResults();
     }
 
     public double mean() {
@@ -70,5 +66,9 @@ public class PercolationStats {
         } else {
             return mean() + CONFIDENCE_95 * stddev() / Math.sqrt(trials);
         }
+    }
+
+    private void printResults() {
+        StdOut.printf("mean\t\t\t\t\t= %s\nstddev\t\t\t\t\t= %s\n95%% confidence interval\t= [%s, %s]", mean(), stddev(), confidenceLo(), confidenceHi());
     }
 }
