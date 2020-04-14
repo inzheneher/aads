@@ -5,18 +5,24 @@ public class Percolation {
 
     private final boolean[][] opened;
     private int numberOfOpenSites;
-    private final int size;
+    private final int gridSize;
     private final int top, bottom;
+    private final int[] parent;
+    private final int[] size;
     private final WeightedQuickUnionUF ufTop;
-    private final WeightedQuickUnionUF ufBottom;
 
     public Percolation(int n) {
         if (n <= 0) throw new IllegalArgumentException();
-        size = n;
+        gridSize = n;
         top = 0;
         bottom = n * n + 1;
-        ufTop = new WeightedQuickUnionUF(size * size + 2);
-        ufBottom = new WeightedQuickUnionUF(size * size + 1);
+        ufTop = new WeightedQuickUnionUF(gridSize * gridSize + 2);
+        parent = new int[bottom];
+        size = new int[bottom];
+        for (int i = 0; i < bottom; i++) {
+            parent[i] = i;
+            size[i] = 1;
+        }
         opened = new boolean[n][n];
     }
 
@@ -24,8 +30,8 @@ public class Percolation {
         Percolation percolation = new Percolation(Integer.parseInt(args[0]));
         int row, col;
         while (!percolation.percolates()) {
-            row = StdRandom.uniform(1, percolation.size + 1);
-            col = StdRandom.uniform(1, percolation.size + 1);
+            row = StdRandom.uniform(1, percolation.gridSize + 1);
+            col = StdRandom.uniform(1, percolation.gridSize + 1);
             percolation.open(row, col);
         }
     }
@@ -38,24 +44,24 @@ public class Percolation {
             numberOfOpenSites++;
             if (row == 1) {
                 ufTop.union(getArrayIndexFor(row, col), top);
-                ufBottom.union(getArrayIndexFor(row, col), top);
+                union(getArrayIndexFor(row, col), top);
             }
-            if (row == size) ufTop.union(getArrayIndexFor(row, col), bottom);
+            if (row == gridSize) ufTop.union(getArrayIndexFor(row, col), bottom);
             if (col > 1 && isOpen(row, col - 1)) {
                 ufTop.union(getArrayIndexFor(row, col - 1), getArrayIndexFor(row, col));
-                ufBottom.union(getArrayIndexFor(row, col - 1), getArrayIndexFor(row, col));
+                union(getArrayIndexFor(row, col - 1), getArrayIndexFor(row, col));
             }
-            if (col < size && isOpen(row, col + 1)) {
+            if (col < gridSize && isOpen(row, col + 1)) {
                 ufTop.union(getArrayIndexFor(row, col + 1), getArrayIndexFor(row, col));
-                ufBottom.union(getArrayIndexFor(row, col + 1), getArrayIndexFor(row, col));
+                union(getArrayIndexFor(row, col + 1), getArrayIndexFor(row, col));
             }
             if (row > 1 && isOpen(row - 1, col)) {
                 ufTop.union(getArrayIndexFor(row - 1, col), getArrayIndexFor(row, col));
-                ufBottom.union(getArrayIndexFor(row - 1, col), getArrayIndexFor(row, col));
+                union(getArrayIndexFor(row - 1, col), getArrayIndexFor(row, col));
             }
-            if (row < size && isOpen(row + 1, col)) {
+            if (row < gridSize && isOpen(row + 1, col)) {
                 ufTop.union(getArrayIndexFor(row + 1, col), getArrayIndexFor(row, col));
-                ufBottom.union(getArrayIndexFor(row + 1, col), getArrayIndexFor(row, col));
+                union(getArrayIndexFor(row + 1, col), getArrayIndexFor(row, col));
             }
         }
     }
@@ -91,17 +97,39 @@ public class Percolation {
         return ufTop.find(p) == ufTop.find(q);
     }
 
-    private boolean connectedBottom(int p, int q) {
-        return ufBottom.find(p) == ufBottom.find(q);
-    }
-
     private int getArrayIndexFor(int row, int col) {
-        if ((row < 1 || row > size) || (col < 1 || col > size)) throw new IllegalArgumentException();
-        return (row - 1) * size + col;
+        if ((row < 1 || row > gridSize) || (col < 1 || col > gridSize)) throw new IllegalArgumentException();
+        return (row - 1) * gridSize + col;
     }
 
     private void validate(int a) {
         int n = 1;
-        if (a < n || a > size) throw new IllegalArgumentException(String.format("Index %s must be between %s and %s", a, n, size - 1));
+        if (a < n || a > gridSize) throw new IllegalArgumentException(String.format("Index %s must be between %s and %s", a, n, gridSize - 1));
+    }
+    
+    private boolean connectedBottom(int p, int q) {
+        return find(p) == find(q);
+    }
+
+    private int find(int p) {
+        while (p != parent[p])
+            p = parent[p];
+        return p;
+    }
+
+    private void union(int p, int q) {
+        int rootP = find(p);
+        int rootQ = find(q);
+        if (rootP == rootQ) return;
+
+        // make smaller root point to larger one
+        if (size[rootP] < size[rootQ]) {
+            parent[rootP] = rootQ;
+            size[rootQ] += size[rootP];
+        }
+        else {
+            parent[rootQ] = rootP;
+            size[rootP] += size[rootQ];
+        }
     }
 }
