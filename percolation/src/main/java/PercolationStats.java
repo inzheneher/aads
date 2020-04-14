@@ -7,6 +7,9 @@ public class PercolationStats {
     private static final double CONFIDENCE_95 = 1.96;
     private final int trials;
     private final double[] numberOfOpenSitesArray;
+    private double mean, stddev;
+    private boolean setMean;
+    private boolean setStddev;
 
     public PercolationStats(int n, int trials) {
         if (n <= 0 || trials <= 0) throw new IllegalArgumentException();
@@ -34,18 +37,38 @@ public class PercolationStats {
     }
 
     public double mean() {
-        return StdStats.mean(numberOfOpenSitesArray);
+        mean = StdStats.mean(numberOfOpenSitesArray);
+        setMean = true;
+        return mean;
     }
 
     public double stddev() {
-        return StdStats.stddev(numberOfOpenSitesArray);
+        stddev = StdStats.stddev(numberOfOpenSitesArray);
+        setStddev = true;
+        return stddev;
     }
 
     public double confidenceLo() {
-        return mean() - CONFIDENCE_95 * stddev() / Math.sqrt(trials);
+        if (setMean && setStddev) {
+            return mean - CONFIDENCE_95 * stddev / Math.sqrt(trials);
+        } else if (setMean && !setStddev) {
+            return mean - CONFIDENCE_95 * stddev() / Math.sqrt(trials);
+        } else if (!setMean && setStddev) {
+            return mean() - CONFIDENCE_95 * stddev / Math.sqrt(trials);
+        } else {
+            return mean() - CONFIDENCE_95 * stddev() / Math.sqrt(trials);
+        }
     }
 
     public double confidenceHi() {
-        return mean() + CONFIDENCE_95 * stddev() / Math.sqrt(trials);
+        if (setMean && setStddev) {
+            return mean + CONFIDENCE_95 * stddev / Math.sqrt(trials);
+        } else if (setMean && !setStddev) {
+            return mean + CONFIDENCE_95 * stddev() / Math.sqrt(trials);
+        } else if (!setMean && setStddev) {
+            return mean() + CONFIDENCE_95 * stddev / Math.sqrt(trials);
+        } else {
+            return mean() + CONFIDENCE_95 * stddev() / Math.sqrt(trials);
+        }
     }
 }
