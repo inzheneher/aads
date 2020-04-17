@@ -1,46 +1,110 @@
 import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.function.Consumer;
 
 public class Deque<Item> implements Iterable<Item> {
 
-    // construct an empty deque
+    private int head, tail;
+    private Object[] elements;
+
     public Deque() {
+        elements = new Object[16];
     }
 
-    // is the deque empty?
-    public boolean isEmpty() {
-        return false;
-    }
-
-    // return the number of items on the deque
-    public int size() {
-        return -1;
-    }
-
-    // add the item to the front
-    public void addFirst(Item item) {
-    }
-
-    // add the item to the back
-    public void addLast(Item item) {
-    }
-
-    // remove and return the item from the front
-    public Item removeFirst() {
-        return (Item) new Object();
-    }
-
-    // remove and return the item from the back
-    public Item removeLast() {
-        return (Item) new Object();
-    }
-
-    // return an iterator over items in order from front to back
-    public Iterator<Item> iterator() {
-        return (Iterator<Item>) new Object();
-    }
-
-    // unit testing (required)
     public static void main(String[] args) {
+        Deque<Integer> deque = new Deque<>();
+        for (int i = 0; i < 100; i++) {
+            deque.addFirst(i);
+        }
+        for (Integer integer : deque) {
+            System.out.println(integer);
+        }
     }
 
+    public boolean isEmpty() {
+        return elements.length == 0;
+    }
+
+    public int size() {
+        return elements.length;
+    }
+
+    public void addFirst(Item item) {
+        if (item == null) throw new IllegalArgumentException();
+        elements[head = (head - 1) & (elements.length - 1)] = item;
+        if (head == tail) doubleCapacity();
+    }
+
+    public void addLast(Item item) {
+        if (item == null) throw new IllegalArgumentException();
+        elements[tail] = item;
+        if ((tail = (tail + 1) & (elements.length - 1)) == head) doubleCapacity();
+    }
+
+    public Item removeFirst() {
+        if (elements.length == 0) throw new NoSuchElementException();
+        int n = head;
+        Item result = (Item) elements[n];
+        if (result == null) throw new NoSuchElementException();
+        elements[n] = null;
+        head = (n + 1) & (elements.length - 1);
+        return result;
+    }
+
+    public Item removeLast() {
+        if (elements.length == 0) throw new NoSuchElementException();
+        int t = (tail - 1) & (elements.length - 1);
+        Item result = (Item) elements[t];
+        if (result == null) throw new NoSuchElementException();
+        elements[t] = null;
+        tail = t;
+        return result;
+    }
+
+    public Iterator<Item> iterator() {
+        return new DeqIterator();
+    }
+
+    private class DeqIterator implements Iterator<Item> {
+
+        private int cursor = head;
+        private int fence = tail;
+
+        @Override
+        public boolean hasNext() {
+            return cursor != fence;
+        }
+
+        @Override
+        public Item next() {
+            if (cursor == fence) throw new NoSuchElementException();
+            Item result = (Item) elements[cursor];
+            cursor = (cursor + 1) & (elements.length - 1);
+            return result;
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void forEachRemaining(Consumer<? super Item> action) {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    private void doubleCapacity() {
+        int h = head;
+        int n = elements.length;
+        int r = n - h;
+        int newCapacity = n << 1;
+        if (newCapacity < 0) throw new IllegalStateException();
+        Object[] a = new Object[newCapacity];
+        System.arraycopy(elements, h, a, 0, r);
+        System.arraycopy(elements, 0, a, r, h);
+        elements = a;
+        head = 0;
+        tail = n;
+    }
 }
