@@ -22,7 +22,7 @@ public class Deque<Item> implements Iterable<Item> {
     }
 
     public boolean isEmpty() {
-        return elements.length == 0;
+        return head == tail;
     }
 
     public int size() {
@@ -68,7 +68,7 @@ public class Deque<Item> implements Iterable<Item> {
     private class DeqIterator implements Iterator<Item> {
 
         private int cursor = head;
-        private int fence = tail;
+        private final int fence = tail;
 
         @Override
         public boolean hasNext() {
