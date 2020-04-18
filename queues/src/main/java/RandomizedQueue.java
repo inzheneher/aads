@@ -8,20 +8,25 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
 
     private int head, tail;
     private Object[] elements;
+    private int[] pointers;
+    private int capacity = 16;
 
     // construct an empty randomized queue
     public RandomizedQueue() {
-        elements = new Object[16];
+        elements = new Object[capacity];
+        pointers = new int[capacity];
     }
 
     // unit testing (required)
     public static void main(String[] args) {
         RandomizedQueue<String> rq = new RandomizedQueue<>();
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 100; i++) {
             rq.enqueue(String.valueOf(i));
         }
-        for (String s : rq) {
-            System.out.println(s);
+        for (int i = 0; i < 1; i++) {
+            for (String s : rq) {
+                System.out.println(s);
+            }
         }
     }
 
@@ -39,6 +44,7 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     public void enqueue(Item item) {
         if (item == null) throw new IllegalArgumentException();
         elements[head = (head - 1) & (elements.length - 1)] = item;
+        pointers[head] = head;
         if (head == tail) doubleCapacity();
     }
 
@@ -53,12 +59,10 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     // return a random item (but do not remove it)
     public Item sample() {
         if (isEmpty()) throw new NoSuchElementException();
-        int rand = (int) StdRandom.uniform(head, elements.length);
+        int rand = StdRandom.uniform(head, elements.length);
         Item result = (Item) elements[rand];
         if (result == null) throw new NoSuchElementException();
-        if (rand != head) {
-            elements[rand] = elements[head];
-        }
+        if (rand != head) elements[rand] = elements[head];
         return result;
     }
 
@@ -71,6 +75,8 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
 
         private int cursor = head;
         private final int fence = tail;
+        private final int[] temPointers = new int[capacity];
+        private boolean isCopied;
 
         @Override
         public boolean hasNext() {
@@ -80,8 +86,15 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         @Override
         public Item next() {
             if (cursor == fence) throw new NoSuchElementException();
-            cursor = StdRandom.uniform(head, elements.length) & (elements.length - 1);
-            Item result = (Item) elements[cursor];
+            copyArray();
+            int rand = cursor > fence ?
+                    StdRandom.uniform(cursor, temPointers.length) & (temPointers.length - 1) :
+                    StdRandom.uniform(cursor, tail) & (temPointers.length - 1);
+            int pointer = temPointers[rand];
+            Item result = (Item) elements[pointer];
+            if (rand != head) temPointers[rand] = temPointers[cursor];
+            temPointers[cursor] = 0;
+            cursor = (cursor + 1) & (temPointers.length - 1);
             return result;
         }
 
@@ -94,6 +107,13 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         public void forEachRemaining(Consumer<? super Item> action) {
             throw new UnsupportedOperationException();
         }
+
+        private void copyArray() {
+            if (!isCopied) {
+                System.arraycopy(pointers, 0, temPointers, 0, pointers.length);
+                isCopied = true;
+            }
+        }
     }
 
     private void doubleCapacity() {
@@ -103,10 +123,15 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         int newCapacity = n << 1;
         if (newCapacity < 0) throw new IllegalStateException();
         Object[] a = new Object[newCapacity];
+        int[] b = new int[newCapacity];
         System.arraycopy(elements, h, a, 0, r);
         System.arraycopy(elements, 0, a, r, h);
+        System.arraycopy(pointers, h, b, 0, r);
+        System.arraycopy(pointers, 0, b, r, h);
         elements = a;
+        pointers = b;
         head = 0;
         tail = n;
+        capacity = newCapacity;
     }
 }
