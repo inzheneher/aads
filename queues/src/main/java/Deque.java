@@ -1,18 +1,19 @@
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.util.function.Consumer;
 
 public class Deque<Item> implements Iterable<Item> {
 
     private int head, tail;
+    private static final int CAPACITY = 16;
     private Object[] elements;
 
     public Deque() {
-        elements = new Object[16];
+        elements = new Object[CAPACITY];
     }
 
     public static void main(String[] args) {
         Deque<Integer> deque = new Deque<>();
+        System.out.println(deque.size());
         for (int i = 0; i < 100; i++) {
             deque.addFirst(i);
         }
@@ -26,19 +27,21 @@ public class Deque<Item> implements Iterable<Item> {
     }
 
     public int size() {
-        return elements.length;
+        return (tail - head) & (elements.length - 1);
     }
 
     public void addFirst(Item item) {
         if (item == null) throw new IllegalArgumentException();
-        elements[head = (head - 1) & (elements.length - 1)] = item;
+        head = (head - 1) & (elements.length - 1);
+        elements[head] = item;
         if (head == tail) doubleCapacity();
     }
 
     public void addLast(Item item) {
         if (item == null) throw new IllegalArgumentException();
         elements[tail] = item;
-        if ((tail = (tail + 1) & (elements.length - 1)) == head) doubleCapacity();
+        tail = (tail + 1) & (elements.length - 1);
+        if (tail == head) doubleCapacity();
     }
 
     public Item removeFirst() {
@@ -85,11 +88,6 @@ public class Deque<Item> implements Iterable<Item> {
 
         @Override
         public void remove() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void forEachRemaining(Consumer<? super Item> action) {
             throw new UnsupportedOperationException();
         }
     }

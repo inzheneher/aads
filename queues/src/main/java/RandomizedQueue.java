@@ -2,7 +2,6 @@ import edu.princeton.cs.algs4.StdRandom;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.util.function.Consumer;
 
 public class RandomizedQueue<Item> implements Iterable<Item> {
 
@@ -37,13 +36,14 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
 
     // return the number of items on the randomized queue
     public int size() {
-        return elements.length;
+        return (tail - head) & (elements.length - 1);
     }
 
     // add the item
     public void enqueue(Item item) {
         if (item == null) throw new IllegalArgumentException();
-        elements[head = (head - 1) & (elements.length - 1)] = item;
+        head = (head - 1) & (elements.length - 1);
+        elements[head] = item;
         pointers[head] = head;
         if (head == tail) doubleCapacity();
     }
@@ -100,11 +100,6 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
 
         @Override
         public void remove() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void forEachRemaining(Consumer<? super Item> action) {
             throw new UnsupportedOperationException();
         }
 
