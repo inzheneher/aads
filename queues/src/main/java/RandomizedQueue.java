@@ -50,7 +50,13 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
 
     // remove and return a random item
     public Item dequeue() {
-        Item result = sample();
+        if (isEmpty()) throw new NoSuchElementException();
+        int rand = head > tail ?
+                StdRandom.uniform(head, elements.length) :
+                StdRandom.uniform(head, tail);
+        Item result = (Item) elements[rand];
+        if (result == null) throw new NoSuchElementException();
+        if (rand != head) elements[rand] = elements[head];
         elements[head] = null;
         head = (head + 1) & (elements.length - 1);
         return result;
@@ -62,7 +68,6 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         int rand = StdRandom.uniform(head, elements.length);
         Item result = (Item) elements[rand];
         if (result == null) throw new NoSuchElementException();
-        if (rand != head) elements[rand] = elements[head];
         return result;
     }
 
