@@ -4,22 +4,23 @@ import java.util.NoSuchElementException;
 public class Deque<Item> implements Iterable<Item> {
 
     private int head, tail;
-    private static final int CAPACITY = 16;
     private Object[] elements;
 
     public Deque() {
-        elements = new Object[CAPACITY];
+        elements = new Object[2];
     }
 
     public static void main(String[] args) {
         Deque<Integer> deque = new Deque<>();
-        System.out.println(deque.size());
-        for (int i = 0; i < 100; i++) {
+        System.out.println(deque.elements.length);
+        for (int i = 0; i < 10; i++) {
             deque.addFirst(i);
         }
-        for (Integer integer : deque) {
-            System.out.println(integer);
+        System.out.println(deque.elements.length);
+        for (int i = 0; i < 10; i++) {
+            deque.removeLast();
         }
+        System.out.println(deque.elements.length);
     }
 
     public boolean isEmpty() {
@@ -51,6 +52,7 @@ public class Deque<Item> implements Iterable<Item> {
         if (result == null) throw new NoSuchElementException();
         elements[n] = null;
         head = (n + 1) & (elements.length - 1);
+        if (tail - head > 0 && tail - head <= elements.length / 4) halvingCapacity();
         return result;
     }
 
@@ -61,6 +63,9 @@ public class Deque<Item> implements Iterable<Item> {
         if (result == null) throw new NoSuchElementException();
         elements[t] = null;
         tail = t;
+        if (head - tail > 0 && elements.length - head + tail <= elements.length / 4) {
+            halvingCapacity2();
+        } else if (head - tail < 0 && tail <= elements.length / 4) halvingCapacity2();
         return result;
     }
 
@@ -104,5 +109,34 @@ public class Deque<Item> implements Iterable<Item> {
         elements = a;
         head = 0;
         tail = n;
+    }
+
+    private void halvingCapacity() {
+        int h = head;
+        int n = elements.length;
+        int t = tail;
+        int r = n - h;
+        int newCapacity = elements.length >> 1;
+        Object[] a = new Object[newCapacity];
+        System.arraycopy(elements, h, a, 0, t - h);
+        elements = a;
+        tail = head;
+        head = 0;
+    }
+
+    private void halvingCapacity2() {
+        int h = head;
+        int n = elements.length;
+        int t = tail;
+        int r = n - h;
+        int newCapacity = elements.length >> 1;
+        Object[] a = new Object[newCapacity];
+        if (head != 0) {
+            System.arraycopy(elements, 0, a, t, r);
+        }
+        System.arraycopy(elements, h, a, 0, t);
+        elements = a;
+        tail = r + t;
+        head = 0;
     }
 }

@@ -16,14 +16,13 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
 
     // unit testing (required)
     public static void main(String[] args) {
-        RandomizedQueue<String> rq = new RandomizedQueue<>();
-        for (int i = 0; i < 100; i++) {
-            rq.enqueue(String.valueOf(i));
+        RandomizedQueue<Character> rq = new RandomizedQueue<>();
+        String alphabet = "A B C D E F G H I J K L M N O P Q R S T U V W X Y Z";
+        for (int i = 0; i < 52; i = i + 2) {
+            rq.enqueue(alphabet.charAt(i));
         }
-        for (int i = 0; i < 1; i++) {
-            for (String s : rq) {
-                System.out.println(s);
-            }
+        for (int i = 0; i < 26; i++) {
+            System.out.println(rq.dequeue());
         }
     }
 
