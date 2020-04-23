@@ -5,15 +5,13 @@ import java.util.NoSuchElementException;
 
 public class RandomizedQueue<Item> implements Iterable<Item> {
 
-    private int head, tail;
     private Object[] elements;
-    private int[] pointers;
-    private int capacity = 16;
+    private int n;
 
     // construct an empty randomized queue
     public RandomizedQueue() {
-        elements = new Object[capacity];
-        pointers = new int[capacity];
+        elements = new Object[2];
+        n = 0;
     }
 
     // unit testing (required)
@@ -31,43 +29,38 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
 
     // is the randomized queue empty?
     public boolean isEmpty() {
-        return head == tail;
+        return n == 0;
     }
 
     // return the number of items on the randomized queue
     public int size() {
-        return (tail - head) & (elements.length - 1);
+        return n;
     }
 
     // add the item
     public void enqueue(Item item) {
         if (item == null) throw new IllegalArgumentException();
-        head = (head - 1) & (elements.length - 1);
-        elements[head] = item;
-        pointers[head] = head;
-        if (head == tail) doubleCapacity();
+        if (n == elements.length) doubleCapacity();
+        elements[n++] = item;
     }
 
     // remove and return a random item
     public Item dequeue() {
-        if (isEmpty()) throw new NoSuchElementException();
-        int rand = head > tail ?
-                StdRandom.uniform(head, elements.length) :
-                StdRandom.uniform(head, tail);
+        if (size() == 0) throw new NoSuchElementException();
+        int rand = StdRandom.uniform(n);
         Item result = (Item) elements[rand];
-        if (result == null) throw new NoSuchElementException();
-        if (rand != head) elements[rand] = elements[head];
-        elements[head] = null;
-        head = (head + 1) & (elements.length - 1);
+        if (rand != n - 1) elements[rand] = elements[n - 1];
+        elements[n - 1] = null;
+        n--;
+        if (n > 0 && n < elements.length / 4) halvingCapacity();
         return result;
     }
 
     // return a random item (but do not remove it)
     public Item sample() {
-        if (isEmpty()) throw new NoSuchElementException();
-        int rand = StdRandom.uniform(head, elements.length);
+        if (size() == 0) throw new NoSuchElementException();
+        int rand = StdRandom.uniform(n);
         Item result = (Item) elements[rand];
-        if (result == null) throw new NoSuchElementException();
         return result;
     }
 
@@ -78,28 +71,26 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
 
     private class RandomizedIterator implements Iterator<Item> {
 
-        private int cursor = head;
-        private final int fence = tail;
-        private final int[] temPointers = new int[capacity];
-        private boolean isCopied;
+        private int copySize = n;
+        private Object[] copy = new Object[copySize];
+
+        public RandomizedIterator() {
+            System.arraycopy(elements, 0, copy, 0, copySize);
+        }
 
         @Override
         public boolean hasNext() {
-            return cursor != fence;
+            return copySize > 0;
         }
 
         @Override
         public Item next() {
-            if (cursor == fence) throw new NoSuchElementException();
-            copyArray();
-            int rand = cursor > fence ?
-                    StdRandom.uniform(cursor, temPointers.length) & (temPointers.length - 1) :
-                    StdRandom.uniform(cursor, tail) & (temPointers.length - 1);
-            int pointer = temPointers[rand];
-            Item result = (Item) elements[pointer];
-            if (rand != head) temPointers[rand] = temPointers[cursor];
-            temPointers[cursor] = 0;
-            cursor = (cursor + 1) & (temPointers.length - 1);
+            if (copySize == 0) throw new NoSuchElementException();
+            int rand = StdRandom.uniform(copySize);
+            Item result = (Item) copy[rand];
+            if (rand != copySize - 1) copy[rand] = copy[copySize - 1];
+            copy[copySize - 1] = null;
+            copySize--;
             return result;
         }
 
@@ -107,31 +98,19 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         public void remove() {
             throw new UnsupportedOperationException();
         }
-
-        private void copyArray() {
-            if (!isCopied) {
-                System.arraycopy(pointers, 0, temPointers, 0, pointers.length);
-                isCopied = true;
-            }
-        }
     }
 
     private void doubleCapacity() {
-        int h = head;
-        int n = elements.length;
-        int r = n - h;
-        int newCapacity = n << 1;
-        if (newCapacity < 0) throw new IllegalStateException();
+        int newCapacity = elements.length << 1;
         Object[] a = new Object[newCapacity];
-        int[] b = new int[newCapacity];
-        System.arraycopy(elements, h, a, 0, r);
-        System.arraycopy(elements, 0, a, r, h);
-        System.arraycopy(pointers, h, b, 0, r);
-        System.arraycopy(pointers, 0, b, r, h);
+        System.arraycopy(elements, 0, a, 0, n);
         elements = a;
-        pointers = b;
-        head = 0;
-        tail = n;
-        capacity = newCapacity;
+    }
+
+    private void halvingCapacity() {
+        int newCapacity = elements.length >> 1;
+        Object[] a = new Object[newCapacity];
+        System.arraycopy(elements, 0, a, 0, n);
+        elements = a;
     }
 }
