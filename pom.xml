@@ -12,6 +12,7 @@
     <modules>
         <module>percolation</module>
         <module>queues</module>
+        <module>collinearPoints</module>
     </modules>
 
     <properties>
