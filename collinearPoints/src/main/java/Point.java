@@ -34,14 +34,13 @@ public class Point implements Comparable<Point> {
      */
     public static void main(String[] args) {
         /* YOUR CODE HERE */
-        Point point1 = new Point(10, 10);
-        Point point2 = new Point(50, 10);
-        Point point3 = new Point(10, 50);
-        Point point4 = new Point(10, 10);
-        Point point5 = new Point(60, 50);
-        Point point6 = new Point(60, 30);
+        Point p = new Point(1070, 32251);
+        Point q = new Point(2196, 9878);
+        Point r = new Point(1070, 26276);
 
-        System.out.println(point1.slopeOrder().compare(point5, point6));
+        System.out.println(p.compareTo(q));
+        System.out.println(q.compareTo(r));
+        System.out.println(p.compareTo(r));
     }
 
     /**
@@ -76,6 +75,7 @@ public class Point implements Comparable<Point> {
      */
     public double slopeTo(Point that) {
         /* YOUR CODE HERE */
+        if (that == null) throw new NullPointerException();
         if (this.x == that.x && this.y == that.y) return Double.NEGATIVE_INFINITY;
         if (that.y - this.y == 0) return +0.0;
         if (that.x - this.x == 0) return Double.POSITIVE_INFINITY;
@@ -96,8 +96,13 @@ public class Point implements Comparable<Point> {
      */
     public int compareTo(Point that) {
         /* YOUR CODE HERE */
-        if (this.x == that.x && this.y > that.y || this.y == that.y && this.x > that.x) return 1;
-        if (this.x == that.x && this.y < that.y || this.y == that.y && this.x < that.x) return -1;
+        if (that == null) throw new NullPointerException();
+        if (this.y > that.y) return 1;
+        else if (this.y < that.y) return -1;
+        else {
+            if (this.x > that.x) return 1;
+            else if (this.x < that.x) return -1;
+        }
         return 0;
     }
 
