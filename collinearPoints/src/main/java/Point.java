@@ -2,13 +2,14 @@
  *  Compilation:  javac Point.java
  *  Execution:    java Point
  *  Dependencies: none
- *  
+ *
  *  An immutable data type for points in the plane.
  *  For use on Coursera, Algorithms Part I programming assignment.
  *
  ******************************************************************************/
 
 import java.util.Comparator;
+
 import edu.princeton.cs.algs4.StdDraw;
 
 public class Point implements Comparable<Point> {
@@ -19,13 +20,28 @@ public class Point implements Comparable<Point> {
     /**
      * Initializes a new point.
      *
-     * @param  x the <em>x</em>-coordinate of the point
-     * @param  y the <em>y</em>-coordinate of the point
+     * @param x the <em>x</em>-coordinate of the point
+     * @param y the <em>y</em>-coordinate of the point
      */
     public Point(int x, int y) {
         /* DO NOT MODIFY */
         this.x = x;
         this.y = y;
+    }
+
+    /**
+     * Unit tests the Point data type.
+     */
+    public static void main(String[] args) {
+        /* YOUR CODE HERE */
+        Point point1 = new Point(10, 10);
+        Point point2 = new Point(50, 10);
+        Point point3 = new Point(10, 50);
+        Point point4 = new Point(10, 10);
+        Point point5 = new Point(60, 50);
+        Point point6 = new Point(60, 30);
+
+        System.out.println(point1.slopeOrder().compare(point5, point6));
     }
 
     /**
@@ -55,12 +71,15 @@ public class Point implements Comparable<Point> {
      * Double.POSITIVE_INFINITY if the line segment is vertical;
      * and Double.NEGATIVE_INFINITY if (x0, y0) and (x1, y1) are equal.
      *
-     * @param  that the other point
+     * @param that the other point
      * @return the slope between this point and the specified point
      */
     public double slopeTo(Point that) {
         /* YOUR CODE HERE */
-        return 0;
+        if (this.x == that.x && this.y == that.y) return Double.NEGATIVE_INFINITY;
+        if (that.y - this.y == 0) return +0.0;
+        if (that.x - this.x == 0) return Double.POSITIVE_INFINITY;
+        return ((double) (that.y - this.y)) / (that.x - this.x);
     }
 
     /**
@@ -68,15 +87,17 @@ public class Point implements Comparable<Point> {
      * Formally, the invoking point (x0, y0) is less than the argument point
      * (x1, y1) if and only if either y0 < y1 or if y0 = y1 and x0 < x1.
      *
-     * @param  that the other point
+     * @param that the other point
      * @return the value <tt>0</tt> if this point is equal to the argument
-     *         point (x0 = x1 and y0 = y1);
-     *         a negative integer if this point is less than the argument
-     *         point; and a positive integer if this point is greater than the
-     *         argument point
+     * point (x0 = x1 and y0 = y1);
+     * a negative integer if this point is less than the argument
+     * point; and a positive integer if this point is greater than the
+     * argument point
      */
     public int compareTo(Point that) {
         /* YOUR CODE HERE */
+        if (this.x == that.x && this.y > that.y || this.y == that.y && this.x > that.x) return 1;
+        if (this.x == that.x && this.y < that.y || this.y == that.y && this.x < that.x) return -1;
         return 0;
     }
 
@@ -88,9 +109,16 @@ public class Point implements Comparable<Point> {
      */
     public Comparator<Point> slopeOrder() {
         /* YOUR CODE HERE */
-        return Point::compareTo;
+        return new SlopeOrder();
     }
 
+    private class SlopeOrder implements Comparator<Point> {
+
+        @Override
+        public int compare(Point o1, Point o2) {
+            return Double.compare(slopeTo(o1), slopeTo(o2));
+        }
+    }
 
     /**
      * Returns a string representation of this point.
@@ -102,12 +130,5 @@ public class Point implements Comparable<Point> {
     public String toString() {
         /* DO NOT MODIFY */
         return "(" + x + ", " + y + ")";
-    }
-
-    /**
-     * Unit tests the Point data type.
-     */
-    public static void main(String[] args) {
-        /* YOUR CODE HERE */
     }
 }
