@@ -6,6 +6,7 @@ public class FastCollinearPoints {
 
     // finds all line segments containing 4 or more points
     public FastCollinearPoints(Point[] points) {
+        if (points == null) throw new IllegalArgumentException();
     }
 
     public static void main(String[] args) {
