@@ -1,6 +1,5 @@
-import java.util.Arrays;
+import java.util.Comparator;
 import java.util.LinkedList;
-import java.util.Objects;
 
 public class BruteCollinearPoints {
 
@@ -9,52 +8,81 @@ public class BruteCollinearPoints {
     // finds all line segments containing 4 points
     public BruteCollinearPoints(Point[] points) {
         if (points == null) throw new IllegalArgumentException();
-        if (isArrayHasDuplicates(points)) throw new IllegalArgumentException();
-        LinkedList<LineSegment> listLineSegment = new LinkedList<>();
-        LinkedList<PointsKeeper> listPoints = new LinkedList<>();
-        if (points.length < 4) lineSegments = new LineSegment[0];
-        else {
-            for (int i = 0; i < points.length - 3; i++) {
-                if (points[i] == null) throw new IllegalArgumentException();
-                Point[] tempPointsArray = {points[i], points[i + 1], points[i + 2], points[i + 3]};
-                if (Double.compare(points[i].slopeTo(points[i + 1]), points[i].slopeTo(points[i + 2])) == 0 &&
-                        Double.compare(points[i].slopeTo(points[i + 1]), points[i].slopeTo(points[i + 3])) == 0) {
-                    Point[] minAndMaxPointsArray = getMinAndMaxPoints(tempPointsArray);
-                    listPoints.add(new PointsKeeper(minAndMaxPointsArray[0], minAndMaxPointsArray[1]));
-                    listLineSegment.add(new LineSegment(minAndMaxPointsArray[0], minAndMaxPointsArray[1]));
+        int n = points.length;
+        if (n < 4) {
+            for (int i = 0; i < n; i++) {
+                switch (n) {
+                    case 1:
+                        if (points[0] == null) throw new IllegalArgumentException();
+                        else break;
+                    case 2:
+                        if (points[0] == null ||
+                                points[1] == null ||
+                                points[0].compareTo(points[1]) == 0)
+                            throw new IllegalArgumentException();
+                        else break;
+                    case 3:
+                        if (points[0] == null ||
+                                points[1] == null ||
+                                points[2] == null ||
+                                points[0].compareTo(points[1]) == 0 ||
+                                points[0].compareTo(points[2]) == 0 ||
+                                points[1].compareTo(points[2]) == 0)
+                            throw new IllegalArgumentException();
+                        else break;
                 }
             }
-            Arrays.sort(points);
-            for (int i = 0; i < points.length - 3; i++) {
-                if (points[i] == null) throw new IllegalArgumentException();
-                Point[] tempPointsArray = {points[i], points[i + 1], points[i + 2], points[i + 3]};
-                if (Double.compare(points[i].slopeTo(points[i + 1]), points[i].slopeTo(points[i + 2])) == 0 &&
-                        Double.compare(points[i].slopeTo(points[i + 1]), points[i].slopeTo(points[i + 3])) == 0) {
-                    Point[] minAndMaxPointsArray = getMinAndMaxPoints(tempPointsArray);
-                    listPoints.add(new PointsKeeper(minAndMaxPointsArray[0], minAndMaxPointsArray[1]));
-                    listLineSegment.add(new LineSegment(minAndMaxPointsArray[0], minAndMaxPointsArray[1]));
+            lineSegments = new LineSegment[0];
+        } else {
+            LinkedList<Point> listPoints = new LinkedList<>();
+            LinkedList<LineSegment> listLineSegments = new LinkedList<>();
+            for (int i = 0; i < n - 2; i++) {
+                if (i < 1 && points[i] == null) throw new IllegalArgumentException();
+                for (int j = i + 1; j < n - 1; j++) {
+                    if (j < 2 && points[j] == null || points[i].compareTo(points[j]) == 0)
+                        throw new IllegalArgumentException();
+                    for (int k = j + 1; k < n; k++) {
+                        if (points[k] == null || points[i].compareTo(points[k]) == 0 || points[j].compareTo(points[k]) == 0)
+                            throw new IllegalArgumentException();
+                        if (Double.compare(points[i].slopeTo(points[j]), points[i].slopeTo(points[k])) == 0) {
+                            listPoints.add(points[k]);
+                        }
+                    }
+                    if (!listPoints.isEmpty()) {
+                        listPoints.add(points[i]);
+                        listPoints.add(points[j]);
+                    }
+                    if (listPoints.size() > 3) {
+                        listPoints.sort(new SlopeOrder());
+                        listLineSegments.add(new LineSegment(listPoints.getFirst(), listPoints.getLast()));
+                    }
+                    listPoints.clear();
                 }
             }
-            for (int i = 0; i < listLineSegment.size() - 1; i++) {
-                if (listPoints.get(i).equals(listPoints.get(i + 1))) {
-                    listPoints.remove(i);
-                    listLineSegment.remove(i);
-                }
-            }
-            lineSegments = new LineSegment[listLineSegment.size()];
-            for (int i = 0; i < listLineSegment.size(); i++) {
-                lineSegments[i] = listLineSegment.get(i);
+            lineSegments = new LineSegment[listLineSegments.size()];
+            for (int i = 0; i < listLineSegments.size(); i++) {
+                lineSegments[i] = listLineSegments.get(i);
             }
         }
     }
 
     public static void main(String[] args) {
-
         Point[] points = {
-                new Point(1158, 19504),
-                new Point(5496, 19504),
-                new Point(9746, 19504),
-                new Point(7497, 19504),
+                new Point(10000, 0),
+                new Point(8000, 2000),
+                new Point(2000, 8000),
+                new Point(0, 10000),
+                new Point(20000, 0),
+                new Point(18000, 2000),
+                new Point(2000, 18000),
+                new Point(10000, 20000),
+                new Point(30000, 0),
+                new Point(0, 30000),
+                new Point(20000, 10000),
+                new Point(13000, 0),
+                new Point(11000, 3000),
+                new Point(5000, 12000),
+                new Point(9000, 6000)
         };
 
         BruteCollinearPoints bcp = new BruteCollinearPoints(points);
@@ -78,60 +106,12 @@ public class BruteCollinearPoints {
         return tempArr;
     }
 
-    private Point[] getMinAndMaxPoints(Point[] points) {
-        Point[] tempArr = new Point[points.length];
-        System.arraycopy(points, 0, tempArr, 0, points.length);
-        Point[] minMaxArray = new Point[2];
-        Point min = tempArr[0];
-        Point max = tempArr[3];
-        for (int i = 1; i < tempArr.length; i++) {
-            if (min.compareTo(tempArr[i]) > 0) {
-                min = tempArr[i];
-                tempArr[i] = tempArr[i - 1];
-            }
-            if (max.compareTo(tempArr[i]) < 0) max = tempArr[i];
-        }
-        minMaxArray[0] = min;
-        minMaxArray[1] = max;
-        return minMaxArray;
-    }
-
-    private boolean isArrayHasDuplicates(Point[] points) {
-        int n = points.length;
-        if (n == 0) return false;
-        int counter = 0;
-        Point[] tempArr = new Point[n];
-        System.arraycopy(points, 0, tempArr, 0, n);
-        for (Point point : tempArr) if (point == null) throw new IllegalArgumentException();
-        Arrays.sort(tempArr);
-        for (int i = 0; i < n - 1; i++) {
-            if (tempArr[i].compareTo(tempArr[i + 1]) == 0) counter++;
-        }
-        if (tempArr[n - 1] == null) throw new IllegalArgumentException();
-        return counter > 0;
-    }
-
-    private static class PointsKeeper {
-        private final Point p1;
-        private final Point p2;
-
-        public PointsKeeper(Point p1, Point p2) {
-            this.p1 = p1;
-            this.p2 = p2;
-        }
-
+    private static class SlopeOrder implements Comparator<Point> {
         @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            PointsKeeper that = (PointsKeeper) o;
-            return p1.equals(that.p1) &&
-                    p2.equals(that.p2);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(p1, p2);
+        public int compare(Point point1, Point point2) {
+            if (point1.compareTo(point2) > 0) return 1;
+            else if (point1.compareTo(point2) < 0) return -1;
+            return 0;
         }
     }
 }
