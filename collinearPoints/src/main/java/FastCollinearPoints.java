@@ -1,4 +1,3 @@
-import java.util.Comparator;
 import java.util.LinkedList;
 
 public class FastCollinearPoints {
@@ -54,7 +53,7 @@ public class FastCollinearPoints {
                         listPoints.add(points[j]);
                     }
                     if (listPoints.size() > 3) {
-                        listPoints.sort(new SlopeOrder());
+                        listPoints.sort(null);
                         listLineSegments.add(new LineSegment(listPoints.getFirst(), listPoints.getLast()));
                     }
                     if (listPoints.size() == points.length) break outerLoop;
@@ -101,14 +100,5 @@ public class FastCollinearPoints {
         LineSegment[] tempArr = new LineSegment[n];
         System.arraycopy(lineSegments, 0, tempArr, 0, n);
         return tempArr;
-    }
-
-    private static class SlopeOrder implements Comparator<Point> {
-        @Override
-        public int compare(Point point1, Point point2) {
-            if (point1.compareTo(point2) > 0) return 1;
-            else if (point1.compareTo(point2) < 0) return -1;
-            return 0;
-        }
     }
 }
