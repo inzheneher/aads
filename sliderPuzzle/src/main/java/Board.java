@@ -1,56 +1,113 @@
 import edu.princeton.cs.algs4.MinPQ;
 
+import java.util.Arrays;
+
 public class Board {
 
-    // create a board from an n-by-n array of tiles,
-    // where tiles[row][col] = tile at (row, col)
+    private final int[][] tiles;
+    private final int n;
+
+    /**
+     * Create a board from an n-by-n array of tiles,
+     * where tiles[row][col] = tile at (row, col)
+     */
     public Board(int[][] tiles) {
-
+        this.tiles = Arrays.copyOf(tiles, tiles.length);
+        n = this.tiles.length;
     }
 
-    // string representation of this board
+    /**
+     * Unit testing (not graded)
+     */
+    public static void main(String[] args) {
+        Board board1 = new Board(new int[][]{{0, 1, 3}, {4, 2, 5}, {7, 8, 6}});
+        Board board2 = new Board(new int[][]{{1, 2, 3}, {4, 5, 6}, {7, 8, 0}});
+        System.out.println(board1.toString());
+        System.out.println(board1.equals(board2));
+        System.out.printf("Dimension: %s\n", board1.dimension());
+        System.out.printf("Hamming distance is: %s\n", board1.hamming());
+    }
+
+    /**
+     * String representation of this board
+     */
     public String toString() {
-        return "";
+        StringBuilder tableArray = new StringBuilder();
+        for (int[] tile : tiles) {
+            for (int i : tile) {
+                tableArray.append(i).append(" ");
+            }
+            tableArray.append("\n");
+        }
+        return tiles.length + "\n" + tableArray;
     }
 
-    // board dimension n
+    /**
+     * Board dimension n
+     */
     public int dimension() {
-        return 0;
+        return n;
     }
 
-    // number of tiles out of place
+    /**
+     * Number of tiles out of place
+     */
     public int hamming() {
-        return 0;
+        int k = 1;
+        int distance = 0;
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                if (this.tiles[i][j] != k && this.tiles[i][j] != 0) distance++;
+                k++;
+            }
+        }
+        return distance;
     }
 
-    // sum of Manhattan distances between tiles and goal
+    /**
+     * Sum of Manhattan distances between tiles and goal
+     */
     public int manhattan() {
         return 0;
     }
 
-    // is this board the goal board?
+    /**
+     * Is this board the goal board?
+     */
     public boolean isGoal() {
         return false;
     }
 
-    // does this board equal y?
+    /**
+     * Does this board equal y?
+     */
     public boolean equals(Object y) {
-        return false;
+        if (y != null && this.getClass() == y.getClass()) {
+            int[][] aTiles = ((Board) y).tiles;
+            if (tiles == aTiles) return true;
+            if (tiles == null || aTiles == null) return false;
+            int length = tiles.length;
+            if (aTiles.length != length) return false;
+            for (int i = 0; i < tiles.length; i++) {
+                for (int j = 0; j < tiles[i].length; j++) {
+                    if (!(tiles[i][j] == aTiles[i][j])) return false;
+                }
+            }
+            return true;
+        } else return false;
     }
 
-    // all neighboring boards
+    /**
+     * All neighboring boards
+     */
     public Iterable<Board> neighbors() {
         return new MinPQ<>();
     }
 
-    // a board that is obtained by exchanging any pair of tiles
+    /**
+     * A board that is obtained by exchanging any pair of tiles
+     */
     public Board twin() {
         return new Board(new int[][]{});
     }
-
-    // unit testing (not graded)
-    public static void main(String[] args) {
-        Board board = new Board(new int[][]{});
-    }
-
 }
