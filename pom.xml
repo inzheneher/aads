@@ -13,6 +13,7 @@
         <module>percolation</module>
         <module>queues</module>
         <module>collinearPoints</module>
+        <module>sliderPuzzle</module>
     </modules>
 
     <properties>
