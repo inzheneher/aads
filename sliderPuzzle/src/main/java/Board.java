@@ -1,11 +1,10 @@
-import edu.princeton.cs.algs4.MinPQ;
-
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Board {
 
     private final int[][] tiles;
-    private final int n;
+    private final int N;
 
     /**
      * Create a board from an n-by-n array of tiles,
@@ -13,20 +12,18 @@ public class Board {
      */
     public Board(int[][] tiles) {
         this.tiles = Arrays.copyOf(tiles, tiles.length);
-        n = this.tiles.length;
+        N = this.tiles.length;
     }
 
     /**
      * Unit testing (not graded)
      */
     public static void main(String[] args) {
-        Board board1 = new Board(new int[][]{{8, 1, 3}, {4, 0, 2}, {7, 6, 5}});
-        System.out.println(board1.manhattan());
-        Board board2 = new Board(new int[][]{{1, 2, 3}, {4, 5, 6}, {7, 8, 0}});
-        System.out.println(board1.toString());
-        System.out.println(board1.equals(board2));
-        System.out.printf("Dimension: %s\n", board1.dimension());
-        System.out.printf("Hamming distance is: %s\n", board1.hamming());
+        Board board4Neighbors = new Board(new int[][]{{8, 1, 3}, {4, 0, 2}, {7, 6, 5}});
+        System.out.println(board4Neighbors.toString());
+        for (Board neighbor : board4Neighbors.neighbors()) {
+            System.out.println(neighbor.toString());
+        }
     }
 
     /**
@@ -40,14 +37,14 @@ public class Board {
             }
             tableArray.append("\n");
         }
-        return tiles.length + "\n" + tableArray;
+        return dimension() + "\n" + tableArray;
     }
 
     /**
      * Board dimension n
      */
     public int dimension() {
-        return n;
+        return N;
     }
 
     /**
@@ -55,6 +52,7 @@ public class Board {
      */
     public int hamming() {
         int k = 1;
+        int n = dimension();
         int distance = 0;
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
@@ -69,6 +67,7 @@ public class Board {
      * Sum of Manhattan distances between tiles and goal
      */
     public int manhattan() {
+        int n = dimension();
         int dX = 0;
         int dY = 0;
         for (int i = 0; i < n; i++) {
@@ -96,9 +95,9 @@ public class Board {
             int[][] aTiles = ((Board) y).tiles;
             if (tiles == aTiles) return true;
             if (tiles == null || aTiles == null) return false;
-            int length = tiles.length;
+            int length = dimension();
             if (aTiles.length != length) return false;
-            for (int i = 0; i < tiles.length; i++) {
+            for (int i = 0; i < length; i++) {
                 for (int j = 0; j < tiles[i].length; j++) {
                     if (!(tiles[i][j] == aTiles[i][j])) return false;
                 }
@@ -111,7 +110,69 @@ public class Board {
      * All neighboring boards
      */
     public Iterable<Board> neighbors() {
-        return new MinPQ<>();
+        ArrayList<Board> boards = new ArrayList<>();
+        int x, y;
+        x = y = 0;
+        outerBreakPoint:
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                if (tiles[i][j] == 0) {
+                    x = j;
+                    y = i;
+                    break outerBreakPoint;
+                }
+            }
+        }
+        int[][] neighbor;
+        if (x == 0) {
+            if (y == 0) {
+                swapArrayOne(boards, x, y);
+            } else if (y == N - 1) {
+                neighbor = copyArray(tiles);
+                this.swap(neighbor, y, x, y, x + 1);
+                boards.add(new Board(neighbor));
+                neighbor = copyArray(tiles);
+                this.swap(neighbor, y, x, y - 1, x);
+                boards.add(new Board(neighbor));
+            } else if (y < N - 1) {
+                swapArrayOne(boards, x, y);
+                neighbor = copyArray(tiles);
+                this.swap(neighbor, y, x, y - 1, x);
+                boards.add(new Board(neighbor));
+            }
+        } else if (x == N - 1) {
+            if (y == 0) {
+                swapArrayTwo(boards, x, y);
+            } else if (y == N - 1) {
+                swapArrayThree(boards, x, y);
+            } else if (y < N - 1) {
+                swapArrayTwo(boards, x, y);
+                neighbor = copyArray(tiles);
+                this.swap(neighbor, y, x, y - 1, x);
+                boards.add(new Board(neighbor));
+            }
+        } else if (x < N - 1) {
+            if (y == 0) {
+                neighbor = copyArray(tiles);
+                this.swap(neighbor, y, x, y, x + 1);
+                boards.add(new Board(neighbor));
+                swapArrayTwo(boards, x, y);
+            } else if (y == N - 1) {
+                neighbor = copyArray(tiles);
+                this.swap(neighbor, y, x, y, x + 1);
+                boards.add(new Board(neighbor));
+                swapArrayThree(boards, x, y);
+            } else if (y < N - 1) {
+                neighbor = copyArray(tiles);
+                this.swap(neighbor, y, x, y, x + 1);
+                boards.add(new Board(neighbor));
+                swapArrayTwo(boards, x, y);
+                neighbor = copyArray(tiles);
+                this.swap(neighbor, y, x, y - 1, x);
+                boards.add(new Board(neighbor));
+            }
+        }
+        return boards;
     }
 
     /**
@@ -119,5 +180,50 @@ public class Board {
      */
     public Board twin() {
         return new Board(new int[][]{});
+    }
+
+    private void swap(int[][] array, int initY, int initX, int goalY, int goalX) {
+        int x = array[initY][initX];
+        array[initY][initX] = array[goalY][goalX];
+        array[goalY][goalX] = x;
+    }
+
+    private int[][] copyArray(int[][] initialArray) {
+        int n = initialArray.length;
+        int[][] goalArray = new int[n][n];
+        for (int i = 0; i < n; i++) {
+            System.arraycopy(initialArray[i], 0, goalArray[i], 0, n);
+        }
+        return goalArray;
+    }
+
+    private void swapArrayOne(ArrayList<Board> boards, int x, int y) {
+        int[][] neighbor;
+        neighbor = copyArray(tiles);
+        this.swap(neighbor, y, x, y, x + 1);
+        boards.add(new Board(neighbor));
+        neighbor = copyArray(tiles);
+        this.swap(neighbor, y, x, y + 1, x);
+        boards.add(new Board(neighbor));
+    }
+
+    private void swapArrayTwo(ArrayList<Board> boards, int x, int y) {
+        int[][] neighbor;
+        neighbor = copyArray(tiles);
+        this.swap(neighbor, y, x, y, x - 1);
+        boards.add(new Board(neighbor));
+        neighbor = copyArray(tiles);
+        this.swap(neighbor, y, x, y + 1, x);
+        boards.add(new Board(neighbor));
+    }
+
+    private void swapArrayThree(ArrayList<Board> boards, int x, int y) {
+        int[][] neighbor;
+        neighbor = copyArray(tiles);
+        this.swap(neighbor, y, x, y, x - 1);
+        boards.add(new Board(neighbor));
+        neighbor = copyArray(tiles);
+        this.swap(neighbor, y, x, y - 1, x);
+        boards.add(new Board(neighbor));
     }
 }
