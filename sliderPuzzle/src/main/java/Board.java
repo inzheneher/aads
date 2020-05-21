@@ -1,18 +1,17 @@
 import java.util.ArrayList;
-import java.util.Arrays;
 
-public class Board {
+public final class Board {
 
     private final int[][] tiles;
-    private final int N;
+    private final int dimension;
 
     /**
      * Create a board from an n-by-n array of tiles,
      * where tiles[row][col] = tile at (row, col)
      */
     public Board(int[][] tiles) {
-        this.tiles = Arrays.copyOf(tiles, tiles.length);
-        N = this.tiles.length;
+        this.tiles = copyArray(tiles);
+        dimension = this.tiles.length;
     }
 
     /**
@@ -20,6 +19,8 @@ public class Board {
      */
     public static void main(String[] args) {
         Board board4Neighbors = new Board(new int[][]{{8, 1, 3}, {4, 0, 2}, {7, 6, 5}});
+        Board board2Neighbors = new Board(new int[][]{{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}, {13, 14, 15, 0}});
+        System.out.printf("Is this board goal board: %s\n", board2Neighbors.isGoal());
         System.out.println(board4Neighbors.toString());
         for (Board neighbor : board4Neighbors.neighbors()) {
             System.out.println(neighbor.toString());
@@ -44,7 +45,7 @@ public class Board {
      * Board dimension n
      */
     public int dimension() {
-        return N;
+        return dimension;
     }
 
     /**
@@ -84,7 +85,18 @@ public class Board {
      * Is this board the goal board?
      */
     public boolean isGoal() {
-        return false;
+        int n = dimension();
+        int k = 1;
+        int[][] goalArray = new int[n][n];
+        outbreak:
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                goalArray[i][j] = k;
+                k++;
+                if (k == n * n) break outbreak;
+            }
+        }
+        return this.equals(new Board(goalArray));
     }
 
     /**
@@ -111,11 +123,11 @@ public class Board {
      */
     public Iterable<Board> neighbors() {
         ArrayList<Board> boards = new ArrayList<>();
-        int x, y;
-        x = y = 0;
+        int x = 0;
+        int y = 0;
         outerBreakPoint:
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
+        for (int i = 0; i < dimension; i++) {
+            for (int j = 0; j < dimension; j++) {
                 if (tiles[i][j] == 0) {
                     x = j;
                     y = i;
@@ -127,42 +139,42 @@ public class Board {
         if (x == 0) {
             if (y == 0) {
                 swapArrayOne(boards, x, y);
-            } else if (y == N - 1) {
+            } else if (y == dimension - 1) {
                 neighbor = copyArray(tiles);
                 this.swap(neighbor, y, x, y, x + 1);
                 boards.add(new Board(neighbor));
                 neighbor = copyArray(tiles);
                 this.swap(neighbor, y, x, y - 1, x);
                 boards.add(new Board(neighbor));
-            } else if (y < N - 1) {
+            } else if (y < dimension - 1) {
                 swapArrayOne(boards, x, y);
                 neighbor = copyArray(tiles);
                 this.swap(neighbor, y, x, y - 1, x);
                 boards.add(new Board(neighbor));
             }
-        } else if (x == N - 1) {
+        } else if (x == dimension - 1) {
             if (y == 0) {
                 swapArrayTwo(boards, x, y);
-            } else if (y == N - 1) {
+            } else if (y == dimension - 1) {
                 swapArrayThree(boards, x, y);
-            } else if (y < N - 1) {
+            } else if (y < dimension - 1) {
                 swapArrayTwo(boards, x, y);
                 neighbor = copyArray(tiles);
                 this.swap(neighbor, y, x, y - 1, x);
                 boards.add(new Board(neighbor));
             }
-        } else if (x < N - 1) {
+        } else if (x < dimension - 1) {
             if (y == 0) {
                 neighbor = copyArray(tiles);
                 this.swap(neighbor, y, x, y, x + 1);
                 boards.add(new Board(neighbor));
                 swapArrayTwo(boards, x, y);
-            } else if (y == N - 1) {
+            } else if (y == dimension - 1) {
                 neighbor = copyArray(tiles);
                 this.swap(neighbor, y, x, y, x + 1);
                 boards.add(new Board(neighbor));
                 swapArrayThree(boards, x, y);
-            } else if (y < N - 1) {
+            } else if (y < dimension - 1) {
                 neighbor = copyArray(tiles);
                 this.swap(neighbor, y, x, y, x + 1);
                 boards.add(new Board(neighbor));
