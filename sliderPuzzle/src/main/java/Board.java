@@ -1,9 +1,11 @@
-import java.util.ArrayList;
+import edu.princeton.cs.algs4.Stack;
+import edu.princeton.cs.algs4.StdRandom;
 
 public final class Board {
 
     private final int[][] tiles;
     private final int dimension;
+    private Board twin;
 
     /**
      * Create a board from an n-by-n array of tiles,
@@ -18,13 +20,16 @@ public final class Board {
      * Unit testing (not graded)
      */
     public static void main(String[] args) {
-        Board board4Neighbors = new Board(new int[][]{{8, 1, 3}, {4, 0, 2}, {7, 6, 5}});
-        Board board2Neighbors = new Board(new int[][]{{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}, {13, 14, 15, 0}});
-        System.out.printf("Is this board goal board: %s\n", board2Neighbors.isGoal());
+        Board board4Neighbors = new Board(new int[][]{{5, 0, 4}, {2, 3, 8}, {7, 1, 6}});
+        Board otherBoard = new Board(new int[][]{{5, 0, 4}, {2, 3, 8}, {7, 1, 6}});
+        System.out.printf("Is current board equals to other board: %s\n", board4Neighbors.equals(otherBoard));
+        System.out.printf("Is this board goal: %s\n", board4Neighbors.isGoal());
+        System.out.printf("Is current board equals to other board: %s\n", board4Neighbors.equals(otherBoard));
+        Board twinBoard = board4Neighbors.twin();
+        Board anotherTwinBoard = board4Neighbors.twin();
         System.out.println(board4Neighbors.toString());
-        for (Board neighbor : board4Neighbors.neighbors()) {
-            System.out.println(neighbor.toString());
-        }
+        System.out.println(twinBoard.toString());
+        System.out.println(anotherTwinBoard.toString());
     }
 
     /**
@@ -105,13 +110,13 @@ public final class Board {
     public boolean equals(Object y) {
         if (y != null && this.getClass() == y.getClass()) {
             int[][] aTiles = ((Board) y).tiles;
-            if (tiles == aTiles) return true;
-            if (tiles == null || aTiles == null) return false;
+            if (this.tiles == aTiles) return true;
+            if (this.tiles == null || aTiles == null) return false;
             int length = dimension();
             if (aTiles.length != length) return false;
             for (int i = 0; i < length; i++) {
-                for (int j = 0; j < tiles[i].length; j++) {
-                    if (!(tiles[i][j] == aTiles[i][j])) return false;
+                for (int j = 0; j < this.tiles[i].length; j++) {
+                    if (!(this.tiles[i][j] == aTiles[i][j])) return false;
                 }
             }
             return true;
@@ -122,7 +127,7 @@ public final class Board {
      * All neighboring boards
      */
     public Iterable<Board> neighbors() {
-        ArrayList<Board> boards = new ArrayList<>();
+        Stack<Board> boards = new Stack<>();
         int x = 0;
         int y = 0;
         outerBreakPoint:
@@ -142,15 +147,15 @@ public final class Board {
             } else if (y == dimension - 1) {
                 neighbor = copyArray(tiles);
                 this.swap(neighbor, y, x, y, x + 1);
-                boards.add(new Board(neighbor));
+                boards.push(new Board(neighbor));
                 neighbor = copyArray(tiles);
                 this.swap(neighbor, y, x, y - 1, x);
-                boards.add(new Board(neighbor));
+                boards.push(new Board(neighbor));
             } else if (y < dimension - 1) {
                 swapArrayOne(boards, x, y);
                 neighbor = copyArray(tiles);
                 this.swap(neighbor, y, x, y - 1, x);
-                boards.add(new Board(neighbor));
+                boards.push(new Board(neighbor));
             }
         } else if (x == dimension - 1) {
             if (y == 0) {
@@ -161,27 +166,27 @@ public final class Board {
                 swapArrayTwo(boards, x, y);
                 neighbor = copyArray(tiles);
                 this.swap(neighbor, y, x, y - 1, x);
-                boards.add(new Board(neighbor));
+                boards.push(new Board(neighbor));
             }
         } else if (x < dimension - 1) {
             if (y == 0) {
                 neighbor = copyArray(tiles);
                 this.swap(neighbor, y, x, y, x + 1);
-                boards.add(new Board(neighbor));
+                boards.push(new Board(neighbor));
                 swapArrayTwo(boards, x, y);
             } else if (y == dimension - 1) {
                 neighbor = copyArray(tiles);
                 this.swap(neighbor, y, x, y, x + 1);
-                boards.add(new Board(neighbor));
+                boards.push(new Board(neighbor));
                 swapArrayThree(boards, x, y);
             } else if (y < dimension - 1) {
                 neighbor = copyArray(tiles);
                 this.swap(neighbor, y, x, y, x + 1);
-                boards.add(new Board(neighbor));
+                boards.push(new Board(neighbor));
                 swapArrayTwo(boards, x, y);
                 neighbor = copyArray(tiles);
                 this.swap(neighbor, y, x, y - 1, x);
-                boards.add(new Board(neighbor));
+                boards.push(new Board(neighbor));
             }
         }
         return boards;
@@ -191,7 +196,21 @@ public final class Board {
      * A board that is obtained by exchanging any pair of tiles
      */
     public Board twin() {
-        return new Board(new int[][]{});
+        int n = dimension();
+        int[][] goalArray = copyArray(this.tiles);
+        int initX = 0;
+        int initY = 0;
+        int goalX = 0;
+        int goalY = 0;
+        while (initX == goalX && initY == goalY || (goalArray[initY][initX] == 0 || goalArray[goalY][goalX] == 0)) {
+            initX = StdRandom.uniform(n);
+            initY = StdRandom.uniform(n);
+            goalX = StdRandom.uniform(n);
+            goalY = StdRandom.uniform(n);
+        }
+        swap(goalArray, initY, initX, goalY, goalX);
+        if (twin == null) twin = new Board(goalArray);
+        return twin;
     }
 
     private void swap(int[][] array, int initY, int initX, int goalY, int goalX) {
@@ -209,33 +228,33 @@ public final class Board {
         return goalArray;
     }
 
-    private void swapArrayOne(ArrayList<Board> boards, int x, int y) {
+    private void swapArrayOne(Stack<Board> boards, int x, int y) {
         int[][] neighbor;
         neighbor = copyArray(tiles);
         this.swap(neighbor, y, x, y, x + 1);
-        boards.add(new Board(neighbor));
+        boards.push(new Board(neighbor));
         neighbor = copyArray(tiles);
         this.swap(neighbor, y, x, y + 1, x);
-        boards.add(new Board(neighbor));
+        boards.push(new Board(neighbor));
     }
 
-    private void swapArrayTwo(ArrayList<Board> boards, int x, int y) {
+    private void swapArrayTwo(Stack<Board> boards, int x, int y) {
         int[][] neighbor;
         neighbor = copyArray(tiles);
         this.swap(neighbor, y, x, y, x - 1);
-        boards.add(new Board(neighbor));
+        boards.push(new Board(neighbor));
         neighbor = copyArray(tiles);
         this.swap(neighbor, y, x, y + 1, x);
-        boards.add(new Board(neighbor));
+        boards.push(new Board(neighbor));
     }
 
-    private void swapArrayThree(ArrayList<Board> boards, int x, int y) {
+    private void swapArrayThree(Stack<Board> boards, int x, int y) {
         int[][] neighbor;
         neighbor = copyArray(tiles);
         this.swap(neighbor, y, x, y, x - 1);
-        boards.add(new Board(neighbor));
+        boards.push(new Board(neighbor));
         neighbor = copyArray(tiles);
         this.swap(neighbor, y, x, y - 1, x);
-        boards.add(new Board(neighbor));
+        boards.push(new Board(neighbor));
     }
 }
