@@ -1,11 +1,12 @@
 import edu.princeton.cs.algs4.MinPQ;
 
-public class Solver {
+public final class Solver {
 
     private final Board board;
 
     // find a solution to the initial board (using the A* algorithm)
     public Solver(Board initial) {
+        if (initial == null) throw new IllegalArgumentException();
         this.board = initial;
     }
 
